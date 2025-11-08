@@ -6,7 +6,7 @@ const chapterRoutes = require('./chapters')
 const characterRoutes = require('./characters')
 const noteRoutes = require('./notes')
 // const settingRoutes = require('./settings')
-// const promptRoutes = require('./prompts')
+const promptRoutes = require('./prompts')
 
 const router = express.Router()
 
@@ -17,6 +17,6 @@ router.use('/chapters', chapterRoutes)
 router.use('/characters', characterRoutes)
 router.use('/notes', noteRoutes)
 // router.use('/settings', settingRoutes)
-// router.use('/prompts', promptRoutes)
+router.use('/prompts', promptRoutes)
 
 module.exports = router;

@@ -1,18 +1,30 @@
 import { useState } from 'react';
 import Button from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
-import { GENRES, WRITING_PROMPTS } from '../utils/helpers';
+import { GENRES } from '../utils/helpers';
+import ApiService from '../services/api';
 
 const LandingPage = ({ onNavigate }) => {
   const [selectedGenre, setSelectedGenre] = useState('');
   const [currentPrompt, setCurrentPrompt] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleGenreClick = (genre) => {
+  const handleGenreClick = async (genre) => {
     setSelectedGenre(genre);
-    const genreKey = genre.toLowerCase().replace(/\s+/g, '-');
-    const prompts = WRITING_PROMPTS[genreKey] || WRITING_PROMPTS.fantasy;
-    const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
-    setCurrentPrompt(randomPrompt);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const data = await ApiService.generatePublicPrompt(genre);
+      setCurrentPrompt(data.prompt || data.PromptText);
+    } catch (err) {
+      console.error('Error generating prompt:', err);
+      setError('Failed to generate prompt. Please try again.');
+      setCurrentPrompt('');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const features = [
@@ -93,46 +105,95 @@ const LandingPage = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Writing Prompts Section */}
+      {/* AI-Powered Writing Prompts Section */}
       <section className="bg-white py-5">
         <div className="container text-center">
-          <h2 className="fw-bold mb-3">Need Inspiration?</h2>
-          <p className="text-muted mb-4">
-            Get your creativity flowing with genre-specific writing prompts.
-          </p>
+          <div className="mb-4">
+            <span className="badge bg-primary mb-2 px-3 py-2">
+              <i className="bi bi-stars me-2"></i>
+              AI-Powered
+            </span>
+            <h2 className="fw-bold mb-3">Need Inspiration?</h2>
+            <p className="text-muted mb-4">
+              Get your creativity flowing with AI-generated writing prompts tailored to your favorite genres.
+            </p>
+          </div>
 
           <div className="d-flex flex-wrap justify-content-center gap-2 mb-4">
             {GENRES.slice(0, 8).map((genre) => (
               <button
                 key={genre}
                 onClick={() => handleGenreClick(genre)}
+                disabled={loading}
                 className={`btn btn-sm rounded-pill px-3 ${
                   selectedGenre === genre
                     ? 'btn-primary'
                     : 'btn-outline-secondary'
                 }`}
               >
-                {genre}
+                {loading && selectedGenre === genre ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    {genre}
+                  </>
+                ) : (
+                  genre
+                )}
               </button>
             ))}
           </div>
 
-          {currentPrompt && (
-            <Card className="mx-auto" style={{ maxWidth: '600px' }}>
+          {error && (
+            <div className="alert alert-danger mx-auto mb-4" style={{ maxWidth: '600px' }}>
+              {error}
+            </div>
+          )}
+
+          {currentPrompt && !loading && (
+            <Card className="mx-auto" style={{ maxWidth: '700px' }}>
               <CardContent className="p-4 text-center">
                 <div className="mb-3">
                   <span className="badge bg-primary">
+                    <i className="bi bi-lightbulb me-1"></i>
                     {selectedGenre} Prompt
                   </span>
                 </div>
-                <p className="fs-5 text-muted">{currentPrompt}</p>
-                <div className="mt-3">
-                  <Button className="btn btn-primary" onClick={() => onNavigate('signup')}>
+                <div className="bg-light rounded p-4 mb-4">
+                  <p className="fs-5 text-dark mb-0" style={{ lineHeight: '1.7' }}>
+                    {currentPrompt}
+                  </p>
+                </div>
+                <div className="d-flex gap-2 justify-content-center flex-wrap">
+                  <Button 
+                    className="btn btn-primary" 
+                    onClick={() => onNavigate('signup')}
+                  >
+                    <i className="bi bi-pencil me-2"></i>
                     Start Writing This Story
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    className="btn btn-outline-secondary"
+                    onClick={() => handleGenreClick(selectedGenre)}
+                    disabled={loading}
+                  >
+                    <i className="bi bi-arrow-clockwise me-2"></i>
+                    Generate Another
+                  </Button>
                 </div>
+                <p className="text-muted small mt-3 mb-0">
+                  <i className="bi bi-magic me-1"></i>
+                  Generated by AI • Sign up to save and write more prompts
+                </p>
               </CardContent>
             </Card>
+          )}
+
+          {!currentPrompt && !loading && !error && (
+            <div className="text-muted">
+              <i className="bi bi-arrow-up-circle fs-4 mb-2"></i>
+              <p>Select a genre above to generate an AI-powered writing prompt</p>
+            </div>
           )}
         </div>
       </section>

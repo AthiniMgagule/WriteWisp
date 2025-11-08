@@ -100,6 +100,10 @@ class ApiService {
     });
   }
 
+  static async getPromptJournal(userID, username) {
+    return this.request(`/novels/prompt-journal/${userID}?username=${encodeURIComponent(username)}`);
+  }
+
   // Chapter endpoints
   static async createChapter(novelID, chapterData) {
     return this.request(`/chapters/${novelID}`, {
@@ -185,6 +189,49 @@ class ApiService {
     return this.request(`/notes/${noteID}`, {
       method: 'DELETE',
     });
+  }
+
+  // Prompt endpoints
+
+  static async generatePublicPrompt(genre) {
+    // Public endpoint - no auth token needed
+    const url = `${API_BASE_URL}/prompts/public/generate/${genre}`;
+    
+    const config = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    try {
+      const response = await fetch(url, config);
+      const data = await response.json().catch(() => null);
+      
+      if (!response.ok) {
+        throw new Error(data?.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Public API request failed:', error);
+      throw error;
+    }
+  }
+  
+  static async generatePrompt(genre) {
+    return this.request(`/prompts/generate/${genre}`, {
+      method: 'POST',
+    });
+  }
+
+  static async getRandomPrompt(genre) {
+    return this.request(`/prompts/random/${genre}`);
+  }
+
+  static async getAllPrompts(genre = null) {
+    const query = genre ? `?genre=${genre}` : '';
+    return this.request(`/prompts${query}`);
   }
 }
 

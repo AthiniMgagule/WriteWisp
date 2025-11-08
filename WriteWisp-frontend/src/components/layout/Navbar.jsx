@@ -53,7 +53,7 @@ const Navbar = ({ onNavigate }) => {
                 </li>
 
                 {/* User dropdown */}
-                <li className="nav-item dropdown">
+                <li className="nav-item dropdown position-relative">
                   <button
                     className="nav-link dropdown-toggle d-flex align-items-center"
                     id="userDropdown"
@@ -69,7 +69,11 @@ const Navbar = ({ onNavigate }) => {
                     </div>
                     <span className="small">{user?.username}</span>
                   </button>
-                  <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                  <ul
+                    className="dropdown-menu dropdown-menu-end"
+                    aria-labelledby="userDropdown"
+                    style={{ zIndex: 2000 }} // make sure it's on top
+                  >
                     <li>
                       <button
                         className="dropdown-item"

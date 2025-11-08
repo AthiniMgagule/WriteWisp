@@ -1,9 +1,9 @@
 const database = require('../config/database');
 
-//====== for creating chapters of a novel
+//====== for creating chapters of a novel (with optional prompt data)
 const createChapter = async(req, res) => {
   const { NovelID } = req.params;
-  const { title, content } = req.body;
+  const { title, content, promptText, promptGenre } = req.body;
   const db = database.getConnection();
 
   if (!NovelID || !title) {
@@ -11,20 +11,21 @@ const createChapter = async(req, res) => {
   }
 
   db.run(
-    `INSERT INTO Chapters (NovelID, Title, Content) VALUES (?, ?, ?)`,
-    [NovelID, title, content],
+    `INSERT INTO Chapters (NovelID, Title, Content, PromptText, PromptGenre) VALUES (?, ?, ?, ?, ?)`,
+    [NovelID, title, content, promptText || null, promptGenre || null],
     function (err) {
       if (err) {
         console.error('Error creating chapter:', err.message);
         return res.status(500).send('Internal Server Error');
       }
       
-      // Return complete chapter object
       res.status(201).json({
         ChapterID: this.lastID,
         NovelID: parseInt(NovelID),
         Title: title,
-        Content: content || ''
+        Content: content || '',
+        PromptText: promptText || null,
+        PromptGenre: promptGenre || null
       });
     }
   );
